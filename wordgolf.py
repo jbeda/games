@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+import re
 import string
 from collections import deque
 
@@ -17,7 +18,7 @@ class HashDictionary(object):
         self.d.add(w)
 
   def find_edges(self, word):
-    """Find all adjacent words according to WordGolf rules"""
+    """Find all adjacent words according to WordGolf rules."""
     ret = []
     for i in range(len(word)):
       for c in string.lowercase:
@@ -26,7 +27,26 @@ class HashDictionary(object):
           if new_word in self.d:
             ret.append(new_word)
     return ret
-
+    
+class RegExpDictionary(object):
+  def __init__(self, word_length, file=DICTIONARY):
+    """Load the dictionary in RAM."""
+    self.d = list()
+    f = open(file)
+    for w in f.readlines():
+      w = w.strip().lower()
+      if len(w) == word_length:
+        self.d.append(w)
+  
+  def find_edges(self, word):
+    """Find all adjacent words according to WordGolf rules."""
+    ret = []
+    for i in range(len(word)):
+      p = re.compile(word[0:i] + '.' + word[i+1:len(word)])
+      for candidate in self.d:
+        if p.match(candidate):
+          ret.append(candidate)
+    return ret
 def decode_path(parents, end):
   item = end
   path = []
@@ -39,6 +59,7 @@ def find_path(start, end):
   """Find the shortest path from start to end"""
   print "Building Dictionary"
   d = HashDictionary(len(start))
+  #d = RegExpDictionary(len(start))
   print "Dictionary Built.  %d entries" % len(d.d)
 
   q = deque()
